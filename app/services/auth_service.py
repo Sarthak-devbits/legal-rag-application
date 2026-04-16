@@ -3,8 +3,7 @@ from app.repositories.user_repo import create_user, get_user_by_email
 from app.core.security import hash_password, verify_password , create_access_token
 
 async def register_user(session:AsyncSession, email: str, password:str)->dict:
-    existing_user= get_user_by_email(session=session,email=email)
-    
+    existing_user=await get_user_by_email(session=session,email=email)
     if existing_user:
         raise ValueError("Email already registered")
     
@@ -17,12 +16,12 @@ async def register_user(session:AsyncSession, email: str, password:str)->dict:
         "token_type":"bearer"
     }
 
-async def login(session:AsyncSession, email:str, password:str):
+async def login_user(session:AsyncSession, email:str, password:str):
     existing_user=await get_user_by_email(session=session,email=email)
     
     if not existing_user:
         raise ValueError("Invalid email or password")
-    if not verify_password(password, existing_user.hashedPassword):
+    if not verify_password(password, existing_user.hashed_password):
         raise ValueError("Invalid email or password")
     
     if not existing_user.is_active:

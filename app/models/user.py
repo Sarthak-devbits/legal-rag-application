@@ -17,10 +17,10 @@ class User(Base):
     email: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=False
+        unique=True
     )
     
-    hashedPassword: Mapped[str]= mapped_column(
+    hashed_password: Mapped[str]= mapped_column(
         String(255),
         nullable=False
     )
@@ -42,4 +42,4 @@ class User(Base):
     )
     
     def __repr__(self):
-        return f"<Document {self.id} {self.filename} {self.status}>"
+        return f"<Document {self.id} {self.email}>"
