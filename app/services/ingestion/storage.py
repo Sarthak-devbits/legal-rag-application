@@ -1,6 +1,7 @@
 from minio import Minio
 from minio.error import S3Error
 from app.core.config import settings
+from app.core.exceptions import NotFoundError, ValidationError
 import io
 
 minio_client= Minio(
@@ -15,7 +16,7 @@ def ensure_bucket_exists():
         if not minio_client.bucket_exists(settings.minio_bucket):
             minio_client.make_bucket(settings.minio_bucket)
     except S3Error as e:
-        raise Exception(f"Minio bucket error {e}")
+        raise ValidationError(f"Minio bucket error: {e}")
 
 
 async def upload_file(file_path: str, file_data: bytes, content_type: str) -> str:
@@ -29,7 +30,7 @@ async def upload_file(file_path: str, file_data: bytes, content_type: str) -> st
         )
         return file_path
     except S3Error as e:
-        raise Exception(f"Failed to upload file: {e}")
+        raise ValidationError(f"Failed to upload file: {e}")
 
 
 async def download_file(file_path: str) -> bytes:
@@ -38,8 +39,7 @@ async def download_file(file_path: str) -> bytes:
             settings.minio_bucket,
             file_path,
         )
-        
         return response.read()
     except S3Error as e:
-        raise Exception(f"Failed to download file: {e}")
+        raise NotFoundError(f"Failed to download file: {e}")
     

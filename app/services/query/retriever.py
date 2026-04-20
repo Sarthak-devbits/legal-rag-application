@@ -4,6 +4,7 @@ from pgvector.sqlalchemy import Vector
 from langchain_openai import OpenAIEmbeddings
 from app.core.config import settings
 from app.models.chunk import Chunk
+from app.core.exceptions import ValidationError, NotFoundError
 
 embedding_model= OpenAIEmbeddings(
     api_key=settings.openai_api_key,
@@ -16,7 +17,13 @@ async def retrieve_chunks(
     document_ids: list[str],
     top_k:int =20
 )->list[Chunk]:
-    question_vector=await embedding_model.aembed_query(question)
+    if not question or not question.strip():
+        raise ValidationError("Question cannot be empty")
+
+    try:
+        question_vector=await embedding_model.aembed_query(question)
+    except Exception as e:
+        raise ValidationError(f"Failed to generate embedding: {e}")
 
     vector_result= await session.execute(
         select(Chunk)
@@ -25,4 +32,8 @@ async def retrieve_chunks(
         .limit(top_k)
     )
     chunks= vector_result.scalars().all()
+
+    if not chunks:
+        raise NotFoundError("No relevant chunks found for the given documents")
+
     return chunks

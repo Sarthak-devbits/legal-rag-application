@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api.v1 import health, auth, documents
 from app.services.ingestion.storage import ensure_bucket_exists
 from app.api.v1 import health, auth, documents, query
+from app.core.exceptions import register_exception_handlers
 
 
 @asynccontextmanager
@@ -16,6 +17,8 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+
+register_exception_handlers(app=app)
 
 app.include_router(health.router)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
